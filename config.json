@@ -1,6 +1,6 @@
 {
-  "course_url": "https://banquemisr25.udemy.com/course/java-se-programming",
-  "token": "BrdMvNhDf1uurDALEucGExJmrM2BFJvROitvvgtL",
+  "course_url": "",
+  "token": "",
   "udemy_type": "business",
   "chapter": "",
   "lecture": "",
@@ -12,7 +12,7 @@
   "browser": "",
   "h265_crf": "",
   "h265_preset": "",
-  "decryption_key": "6dc980bb58c64b04e4b21e5b8e04d7ab",
+  "decryption_key": "",
   "use_h265": true,
   "use_nvenc": true,
   "download_captions": true,
