@@ -3,6 +3,9 @@
 
 A modern GUI application for downloading Udemy courses with support for encrypted videos, captions, and course materials.
 
+# IMPORTANT
+
+1- use firefox extention : https://addons.mozilla.org/en-US/firefox/addon/widevine-l3-decrypter/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search
 ## Quick Start
 
 1. **Install Python 3** from [python.org](https://python.org/)
