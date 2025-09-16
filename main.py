@@ -12,7 +12,6 @@ import time
 from http.cookiejar import MozillaCookieJar
 from pathlib import Path
 from typing import IO, Union
-from utils import find_executable
 
 import browser_cookie3
 import demoji
@@ -1260,29 +1259,26 @@ def durationtoseconds(period):
 def mux_process(video_filepath: str, audio_filepath: str, video_title: str, output_path: str):
     codec = "hevc_nvenc" if use_nvenc else "libx265"
     transcode = "-hwaccel cuda -hwaccel_output_format cuda" if use_nvenc else ""
-    
-    ffmpeg_path = find_executable("ffmpeg")
-    if not ffmpeg_path:
-        logger.fatal("FFMPEG executable not found. Video muxing cannot proceed.")
-        sys.exit(1)
 
     if os.name == "nt":
         if use_h265:
-            command = f'\"{ffmpeg_path}\" {transcode} -y -i \"{video_filepath}\" -i \"{audio_filepath}\" -c:v {codec} -vtag hvc1 -crf {h265_crf} -preset {h265_preset} -c:a copy -fflags +bitexact -shortest -map_metadata -1 -metadata title=\"{video_title}\" \"{output_path}\"'
+            command = f'ffmpeg {transcode} -y -i "{video_filepath}" -i "{audio_filepath}" -c:v {codec} -vtag hvc1 -crf {h265_crf} -preset {h265_preset} -c:a copy -fflags +bitexact -shortest -map_metadata -1 -metadata title="{video_title}" "{output_path}"'
         else:
-            command = f'\"{ffmpeg_path}\" -y -i \"{video_filepath}\" -i \"{audio_filepath}\" -c copy -fflags +bitexact -shortest -map_metadata -1 -metadata title=\"{video_title}\" \"{output_path}\"'
+            command = f'ffmpeg -y -i "{video_filepath}" -i "{audio_filepath}" -c copy -fflags +bitexact -shortest -map_metadata -1 -metadata title="{video_title}" "{output_path}"'
     else:
         if use_h265:
-            command = f'nice -n 7 \"{ffmpeg_path}\" {transcode} -y -i \"{video_filepath}\" -i \"{audio_filepath}\" -c:v {codec} -vtag hvc1 -crf {h265_crf} -preset {h265_preset} -c:a copy -fflags +bitexact -shortest -map_metadata -1 -metadata title=\"{video_title}\" \"{output_path}\"'
+            command = f'nice -n 7 ffmpeg {transcode} -y -i "{video_filepath}" -i "{audio_filepath}" -c:v {codec} -vtag hvc1 -crf {h265_crf} -preset {h265_preset} -c:a copy -fflags +bitexact -shortest -map_metadata -1 -metadata title="{video_title}" "{output_path}"'
         else:
-            command = f'nice -n 7 \"{ffmpeg_path}\" -y -i \"{video_filepath}\" -i \"{audio_filepath}\" -c copy -fflags +bitexact -shortest -map_metadata -1 -metadata title=\"{video_title}\" \"{output_path}\"'
-  
+            command = f'nice -n 7 ffmpeg -y -i "{video_filepath}" -i "{audio_filepath}" -c copy -fflags +bitexact -shortest -map_metadata -1 -metadata title="{video_title}" "{output_path}"'
+
     process = subprocess.Popen(command, shell=True)
     log_subprocess_output("FFMPEG-STDOUT", process.stdout)
     log_subprocess_output("FFMPEG-STDERR", process.stderr)
     ret_code = process.wait()
     if ret_code != 0:
         raise Exception("Muxing returned a non-zero exit code")
+
+    return ret_code
 
 
 def handle_segments(url, format_id, lecture_id, chapter_dir):
@@ -1292,19 +1288,15 @@ def handle_segments(url, format_id, lecture_id, chapter_dir):
     audio_filepath_enc = lecture_id + ".encrypted.m4a"
 
     logger.info("> Downloading Lecture Tracks...")
-    aria2c_path = find_executable("aria2c")
-    if not aria2c_path:
-        logger.fatal("aria2c executable not found. Segment downloading cannot proceed.")
-        sys.exit(1)
     args = [
-        aria2c_path,
+        "yt-dlp",
         "--enable-file-urls",
         "--force-generic-extractor",
         "--allow-unplayable-formats",
         "--concurrent-fragments",
         f"{concurrent_downloads}",
         "--downloader",
-        aria2c_path,
+        "aria2c",
         "--downloader-args",
         'aria2c:"--disable-ipv6"',
         "--fixup",
@@ -1317,8 +1309,8 @@ def handle_segments(url, format_id, lecture_id, chapter_dir):
         f"{url}",
     ]
     process = subprocess.Popen(args)
-    log_subprocess_output("ARIA2-STDOUT", process.stdout)
-    log_subprocess_output("ARIA2-STDERR", process.stderr)
+    log_subprocess_output("YTDLP-STDOUT", process.stdout)
+    log_subprocess_output("YTDLP-STDERR", process.stderr)
     ret_code = process.wait()
     logger.info("> Lecture Tracks Downloaded")
 
@@ -1342,26 +1334,20 @@ def handle_segments(url, format_id, lecture_id, chapter_dir):
 
 def check_for_aria():
     try:
-        aria2c_path = find_executable("aria2c")
-        if not aria2c_path:
-            return False
-        subprocess.Popen([aria2c_path, "-v"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).wait()
+        subprocess.Popen(["aria2c", "-v"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).wait()
         return True
     except FileNotFoundError:
         return False
     except Exception:
         logger.exception(
-            "> Unexpected exception while checking for aria2c, please tell the program author about this! "
+            "> Unexpected exception while checking for Aria2c, please tell the program author about this! "
         )
         return True
 
 
 def check_for_ffmpeg():
     try:
-        ffmpeg_path = find_executable("ffmpeg")
-        if not ffmpeg_path:
-            return False
-        subprocess.Popen([ffmpeg_path], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL).wait()
+        subprocess.Popen(["ffmpeg"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL).wait()
         return True
     except FileNotFoundError:
         return False
@@ -1413,13 +1399,8 @@ def download_aria(url, file_dir, filename):
     """
     @author Puyodead1
     """
-    aria2c_path = find_executable("aria2c")
-    if not aria2c_path:
-        logger.fatal("aria2c executable not found. File downloading cannot proceed.")
-        sys.exit(1)
-
     args = [
-        aria2c_path,
+        "aria2c",
         url,
         "-o",
         filename,
@@ -1914,7 +1895,7 @@ def main():
     global bearer_token, portal_name
     aria_ret_val = check_for_aria()
     if not aria_ret_val:
-        logger.warning("> aria2c is missing from your system or path! Some downloads may not work.")
+        logger.warning("> Aria2c is missing from your system or path! Some downloads may not work.")
         logger.warning("> Please install aria2c from: https://github.com/aria2/aria2/")
 
     ffmpeg_ret_val = check_for_ffmpeg()
