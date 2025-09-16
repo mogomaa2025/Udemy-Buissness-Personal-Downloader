@@ -2,6 +2,7 @@
 # Udemy Course Downloader GUI
 
 A modern GUI application for downloading Udemy courses with support for encrypted videos, captions, and course materials.
+This project is for eduictional purpose, don't download or share courses.
 
 # IMPORTANT
 
