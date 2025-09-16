@@ -9,6 +9,8 @@ This project is for eduictional purpose, don't download or share courses.
 
 # IMPORTANT
 1- install python : https://www.python.org/ftp/python/3.13.7/python-3.13.7-amd64.exe
+<img width="706" height="449" alt="win-python-installer" src="https://github.com/user-attachments/assets/a401c75b-fa7a-4697-9003-8c1108516266" />
+
 
 2- use firefox extention : https://addons.mozilla.org/en-US/firefox/addon/widevine-l3-decrypter/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search
 
