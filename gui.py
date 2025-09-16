@@ -160,19 +160,16 @@ import re
 import shutil
 from pathvalidate import sanitize_filename
 import os
-from utils import find_executable
 
 
 class UdemyDownloaderGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Udemy Course Downloader [Udemy Business] [Personal] - CopyRight : Eng. Mohamed Gomaa")
+        self.root.title("Udemy Course Downloader & Combiner - CopyRight : Eng. Mohamed Gomaa")
         self.config_path = "config.json"
         self.ffmpeg_processes = []
         self.create_widgets()
-        self.ffmpeg_path = find_executable("ffmpeg")  # Use find_executable
-        if not self.ffmpeg_path:
-            messagebox.showwarning("ffmpeg not found", "ffmpeg executable not found. Video decryption/combination may not work.")
+        self.ffmpeg_path = "ffmpeg"  # Assume ffmpeg is in PATH
         self.load_config()
 
     def create_widgets(self):
