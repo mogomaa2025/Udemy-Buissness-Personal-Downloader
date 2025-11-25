@@ -11,3 +11,5 @@ ffmpeg.exe
 cmd.exe
 aria2c.exe
 packager-linux-x64
+config.json
+temp

@@ -2368,7 +2368,7 @@ def process_coding_assignment(quiz, lecture, chapter_dir):
             f.write(html)
 
 
-def parse_new(udemy: Udemy, udemy_object: dict):
+def parse_new(udemy: Udemy, udemy_object: dict, no_report: bool = False):
     # Prepare chapters/videos structure for selection GUI
     chapters_for_gui = []
     for chapter in udemy_object.get("chapters", []):
@@ -2658,7 +2658,7 @@ def parse_new(udemy: Udemy, udemy_object: dict):
     
     # ===== FINAL COURSE VERIFICATION AND REPORT =====
     # Only run if not disabled
-    if not args.no_report:
+    if not no_report:
         # After all chapters are processed, generate final course-wide verification report
         logger.info("\n" + "="*60)
         logger.info("ALL CHAPTERS COMPLETE - Generating Final Verification Report")
@@ -3318,7 +3318,7 @@ def main():
         if info:
             _print_course_info(udemy, udemy_object)
         else:
-            parse_new(udemy, udemy_object)
+            parse_new(udemy, udemy_object, no_report=args.no_report)
             
     # Clean up any remaining .part files and empty subtitle files after the download process
     logger.info("Cleaning up any remaining .part files and empty subtitle files...")

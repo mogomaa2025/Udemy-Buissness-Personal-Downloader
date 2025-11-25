@@ -799,6 +799,14 @@ class UdemyDownloaderGUI:
                 if h265_preset:
                     download_cmd += ["--h265-preset", h265_preset]
 
+                # Pass --no-report to main.py so we can generate it after our own cleanup
+                download_cmd.append("--no-report")
+
+                # Set decryption key in environment for main.py to use
+                env = os.environ.copy()
+                if decryption_key:
+                    env["UDEMY_DECRYPTION_KEY"] = decryption_key
+
                 self.log(f"Running: {' '.join(download_cmd)}")
                 try:
                     proc = subprocess.Popen(
@@ -808,6 +816,7 @@ class UdemyDownloaderGUI:
                         text=True,
                         encoding="utf-8",
                         errors="replace",
+                        env=env
                     )
                     def enqueue_output(pipe, q, label):
                         for line in iter(pipe.readline, ''):
@@ -892,6 +901,34 @@ class UdemyDownloaderGUI:
             
             # Mark as successful completion
             process_success = True
+            
+            # Generate verification report
+            self.log("Generating final verification report...")
+            try:
+                from download_verifier import verify_course_downloads, generate_verification_report
+                import webbrowser
+                
+                # Reload id_to_title_map
+                id_to_title_map = {}
+                for dirpath, _, filenames in os.walk(search_base):
+                    if "id_to_title.json" in filenames:
+                        map_file_path = os.path.join(dirpath, "id_to_title.json")
+                        try:
+                            with open(map_file_path, "r", encoding="utf-8") as f:
+                                id_to_title_map = json.load(f)
+                        except Exception:
+                            pass
+                        break
+                
+                final_results = verify_course_downloads(search_base, id_to_title_map)
+                course_name = os.path.basename(search_base)
+                html_report_path = generate_verification_report(search_base, course_name, final_results)
+                
+                if html_report_path and os.path.exists(html_report_path):
+                    self.log(f"Verification report saved: {html_report_path}")
+                    webbrowser.open('file://' + os.path.abspath(html_report_path))
+            except Exception as e:
+                self.log(f"Error generating report: {e}")
             
         except Exception as e:
             # Log the error and mark as failure
