@@ -144,6 +144,13 @@ def get_lecture_status(lecture_id: str, lecture_title: str, chapter_dir: str) ->
             return result
     
     # File truly missing
+    # Log what IS in the directory to help debugging
+    try:
+        files_in_dir = os.listdir(chapter_dir)
+        logger.debug(f"Lecture {lecture_id} ({lecture_title}) missing. Files in {chapter_dir}: {files_in_dir}")
+    except Exception:
+        pass
+        
     return result
 
 

@@ -1065,6 +1065,8 @@ class UdemyDownloaderGUI:
         # Find all encrypted files and decrypt with correct output naming
         self.log(f"Starting decryption in directory: {search_dir}")
         for root, dirs, files in os.walk(search_dir):
+            if "_trash" in root:
+                continue
             for file in files:
                 if file.endswith(".encrypted.mp4") or file.endswith(".encrypted.m4a"):
                     if self.stop_event.is_set():
@@ -1126,6 +1128,8 @@ class UdemyDownloaderGUI:
 
         self.log(f"Starting combination in directory: {search_dir}")
         for root, dirs, files in os.walk(search_dir):
+            if "_trash" in root:
+                continue
             for file in files:
                 # Ensure we only process decrypted .mp4 files that are not still in their original encrypted form
                 # and have not yet been combined (checked later by os.path.exists(final_output_path)).
