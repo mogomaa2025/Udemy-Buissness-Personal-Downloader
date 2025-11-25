@@ -431,6 +431,8 @@ def pre_run():
         lecture_filter = parse_lecture_filter(args.lecture_filter_raw)
         logger.info("Lecture filter applied: %s", sorted(lecture_filter))
 
+    return args
+
 
 class Udemy:
     def __init__(self, bearer_token):
@@ -3106,7 +3108,7 @@ def _print_course_info(udemy: Udemy, udemy_object: dict):
             logger.info("==========================================")
 
 
-def main():
+def main(args):
     global bearer_token, portal_name
     aria_ret_val = check_for_aria()
     if not aria_ret_val:
@@ -3328,6 +3330,6 @@ def main():
 
 if __name__ == "__main__":
     # pre run parses arguments, sets up logging, and creates directories
-    pre_run()
+    args = pre_run()
     # run main program
-    main()
+    main(args)
