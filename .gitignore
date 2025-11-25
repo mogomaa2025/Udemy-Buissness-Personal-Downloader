@@ -1,0 +1,13 @@
+__pycache__
+out_dir
+Logs
+yt-dlp.exe
+shaka-packager.exe
+nircmdc.exe
+nircmd.exe
+ffprobe.exe
+ffplay.exe
+ffmpeg.exe
+cmd.exe
+aria2c.exe
+packager-linux-x64

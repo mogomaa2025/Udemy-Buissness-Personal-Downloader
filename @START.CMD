@@ -1,0 +1,1 @@
+nircmd.exe exec hide cmd.exe /c "python gui.py"
