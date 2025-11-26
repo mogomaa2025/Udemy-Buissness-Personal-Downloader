@@ -92,7 +92,10 @@ def get_lecture_status(lecture_id: str, lecture_title: str, chapter_dir: str) ->
     
     # Check for the final combined/renamed file (with title)
     for ext in extensions:
-        final_file = os.path.join(chapter_dir, sanitized_title + ext)
+        expected_name = sanitized_title + ext
+        final_file = os.path.join(chapter_dir, expected_name)
+        
+        # 1. Check exact match
         if os.path.exists(final_file):
             if is_file_complete(final_file):
                 result['status'] = 'complete'
@@ -106,6 +109,25 @@ def get_lecture_status(lecture_id: str, lecture_title: str, chapter_dir: str) ->
                 result['size'] = os.path.getsize(final_file)
                 result['reason'] = 'File exists but is empty or incomplete'
                 return result
+        
+        # 2. Check for prefix match (e.g. "001 Title.mp4")
+        # This is needed because main.py might add index prefixes to filenames
+        try:
+            for f in os.listdir(chapter_dir):
+                if f.endswith(expected_name) and f != expected_name:
+                    # Check if the prefix is likely an index (digits + space/dash/dot)
+                    prefix = f[:-len(expected_name)]
+                    # Simple heuristic: prefix should be short and contain digits
+                    if len(prefix) < 10 and any(c.isdigit() for c in prefix):
+                        full_path = os.path.join(chapter_dir, f)
+                        if is_file_complete(full_path):
+                            result['status'] = 'complete'
+                            result['file'] = f
+                            result['size'] = os.path.getsize(full_path)
+                            result['reason'] = 'Downloaded (with prefix)'
+                            return result
+        except Exception:
+            pass
     
     # Check for files with numeric ID (not yet renamed)
     for ext in extensions:
