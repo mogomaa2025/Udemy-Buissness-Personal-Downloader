@@ -1183,7 +1183,10 @@ class UdemyDownloaderGUI:
                                 for f_path in [mp4_path, m4a_path, encrypted_mp4_path, encrypted_m4a_path]:
                                     if os.path.exists(f_path):
                                         try:
-                                            shutil.move(f_path, os.path.join(trash_dir, os.path.basename(f_path)))
+                                            dst = os.path.join(trash_dir, os.path.basename(f_path))
+                                            if os.path.exists(dst):
+                                                os.remove(dst)
+                                            shutil.move(f_path, dst)
                                         except Exception as e:
                                             self.log(f"Error moving {f_path} to trash: {e}")
                                 

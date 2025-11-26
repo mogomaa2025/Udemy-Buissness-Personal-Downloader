@@ -2840,6 +2840,10 @@ def combine_chapter_files(chapter_dir: str, id_to_title_map: Dict[str, str],
                     if proc.returncode == 0 and os.path.exists(final_output_path) and os.path.getsize(final_output_path) > 0:
                         logger.info(f"  > Successfully combined: {final_output_name}")
                         
+                        # Define encrypted paths for cleanup
+                        encrypted_mp4 = os.path.join(chapter_dir, f"{file_id}.encrypted.mp4")
+                        encrypted_m4a = os.path.join(chapter_dir, f"{file_id}.encrypted.m4a")
+
                         # Backup instead of delete
                         trash_dir = os.path.join(chapter_dir, "_trash")
                         os.makedirs(trash_dir, exist_ok=True)
@@ -2848,7 +2852,10 @@ def combine_chapter_files(chapter_dir: str, id_to_title_map: Dict[str, str],
                             if os.path.exists(temp_file):
                                 try:
                                     import shutil
-                                    shutil.move(temp_file, os.path.join(trash_dir, os.path.basename(temp_file)))
+                                    dst = os.path.join(trash_dir, os.path.basename(temp_file))
+                                    if os.path.exists(dst):
+                                        os.remove(dst)
+                                    shutil.move(temp_file, dst)
                                 except Exception as e:
                                     logger.warning(f"  > Could not move temp file to trash: {e}")
                         
