@@ -633,10 +633,12 @@ def generate_html_report(course_dir: str, course_name: str, verification_results
         logger.info(f"HTML verification report saved to: {report_path}")
         
         # delete _trash folder in all folders
-        for root, dirs, files in os.walk(course_dir):
-            for dir in dirs:
-                if dir == '_trash':
-                    os.remove(os.path.join(root, dir))
+        # in report_path and sub folders
+        for root, dirs, files in os.walk(report_path):
+            if '_trash' in dirs:
+                trash_path = os.path.join(root, '_trash')
+                shutil.rmtree(trash_path)
+                dirs.remove('_trash') # Don't re-walk the _trash directory
 
     except Exception as e:
         logger.error(f"Failed to save HTML verification report: {e}")
