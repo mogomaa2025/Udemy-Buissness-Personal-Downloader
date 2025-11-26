@@ -1,6 +1,6 @@
 {
-  "course_url": "https://banquemisr25.udemy.com/course/postman-from-zero-to-hero-in-arabic",
-  "token": "KUSqnDNa6pkAgnvfMQT0Bvgk1AsjJSybwgqXnB3o",
+  "course_url": "",
+  "token": "",
   "udemy_type": "business",
   "chapter": "",
   "lecture": "",
@@ -12,7 +12,7 @@
   "browser": "",
   "h265_crf": "",
   "h265_preset": "",
-  "decryption_key": "5af0be5f97f18eebb27cbd2abf437e87",
+  "decryption_key": "",
   "use_h265": true,
   "use_nvenc": true,
   "download_captions": true,
@@ -26,5 +26,5 @@
   "subscription_course": false,
   "save_to_file": false,
   "load_from_file": false,
-  "continue_lecture_numbers": false
+  "continue_lecture_numbers": true
 }
