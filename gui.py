@@ -905,13 +905,16 @@ class UdemyDownloaderGUI:
             # Generate verification report
             self.log("Generating final verification report...")
             try:
-                from download_verifier import verify_course_downloads, generate_verification_report
+                from download_verifier import verify_course_downloads, generate_html_report
                 import webbrowser
                 
-                # Reload id_to_title_map
+                # Reload id_to_title_map and find correct course directory
                 id_to_title_map = {}
+                course_dir_for_verification = search_base # Default
+                
                 for dirpath, _, filenames in os.walk(search_base):
                     if "id_to_title.json" in filenames:
+                        course_dir_for_verification = dirpath
                         map_file_path = os.path.join(dirpath, "id_to_title.json")
                         try:
                             with open(map_file_path, "r", encoding="utf-8") as f:
@@ -920,9 +923,9 @@ class UdemyDownloaderGUI:
                             pass
                         break
                 
-                final_results = verify_course_downloads(search_base, id_to_title_map)
-                course_name = os.path.basename(search_base)
-                html_report_path = generate_verification_report(search_base, course_name, final_results)
+                final_results = verify_course_downloads(course_dir_for_verification, id_to_title_map)
+                course_name = os.path.basename(course_dir_for_verification)
+                html_report_path = generate_html_report(course_dir_for_verification, course_name, final_results)
                 
                 if html_report_path and os.path.exists(html_report_path):
                     self.log(f"Verification report saved: {html_report_path}")
