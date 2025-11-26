@@ -633,11 +633,16 @@ def generate_html_report(course_dir: str, course_name: str, verification_results
         logger.info(f"HTML verification report saved to: {report_path}")
         
         # delete _trash folder in all folders
-        # in report_path and sub folders
-        for root, dirs, files in os.walk(report_path):
+        # in course_dir and sub folders
+        import shutil
+        for root, dirs, files in os.walk(course_dir):
             if '_trash' in dirs:
                 trash_path = os.path.join(root, '_trash')
-                shutil.rmtree(trash_path)
+                try:
+                    shutil.rmtree(trash_path)
+                    logger.info(f"Removed trash directory: {trash_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to remove trash directory {trash_path}: {e}")
                 dirs.remove('_trash') # Don't re-walk the _trash directory
 
     except Exception as e:
