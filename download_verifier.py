@@ -631,6 +631,13 @@ def generate_html_report(course_dir: str, course_name: str, verification_results
         with open(report_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
         logger.info(f"HTML verification report saved to: {report_path}")
+        
+        # delete _trash folder in all folders
+        for root, dirs, files in os.walk(course_dir):
+            for dir in dirs:
+                if dir == '_trash':
+                    os.remove(os.path.join(root, dir))
+
     except Exception as e:
         logger.error(f"Failed to save HTML verification report: {e}")
         return None
