@@ -9,7 +9,7 @@ This project is for eduictional purpose, don't download or share courses.
 check important Section for keys
 
 updated:
-<img width="1400" height="1013" alt="image" src="https://github.com/user-attachments/assets/8f033181-11cd-47ed-9964-a7900904f95a" />
+<img width="1400" height="1013" alt="image" src="https://github.com/user-attachments/assets/8e8012fb-6aff-4e8e-8599-ae55b9102e54" />
 
 
 ## selection tool for specific courses
@@ -77,4 +77,7 @@ The following tools are recommended for full functionality:
 ## it's not bug : sometimes take time in big courses 
 just wait for it
 <img width="994" height="834" alt="image" src="https://github.com/user-attachments/assets/e5640d35-e460-4ec2-8a5a-65dd0db6a363" />
+
+## Report at the end
+<img width="1384" height="851" alt="image" src="https://github.com/user-attachments/assets/fffa42db-10a7-4455-825a-986c1bd455ce" />
 
