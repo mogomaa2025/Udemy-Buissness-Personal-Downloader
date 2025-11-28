@@ -8,7 +8,11 @@ This project is for eduictional purpose, don't download or share courses.
 <img width="1002" height="832" alt="image" src="https://github.com/user-attachments/assets/673d6072-a7d7-4cd9-9ad0-eb037fb1d845" />
 check important Section for keys
 
-## updated selection tool
+updated:
+<img width="1400" height="1013" alt="image" src="https://github.com/user-attachments/assets/8f033181-11cd-47ed-9964-a7900904f95a" />
+
+
+## selection tool for specific courses
 <img width="1034" height="732" alt="image" src="https://github.com/user-attachments/assets/037647be-6f56-45a9-95ea-218e1a1248fc" />
 
 
