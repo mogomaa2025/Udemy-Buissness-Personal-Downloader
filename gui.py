@@ -124,15 +124,6 @@ class UdemyDownloaderGUI:
         lbl_course.grid(row=row, column=0, sticky="e", pady=4, padx=4)
         self.course_url_entry = tk.Entry(main_frame, width=60, **entry_style)
         self.course_url_entry.grid(row=row, column=1, columnspan=3, sticky="nsew", pady=4, padx=4)
-        
-        def clean_course_url(event):
-            url = self.course_url_entry.get().strip()
-            if "/learn/lecture/" in url:
-                clean_url = url.split("/learn/lecture/")[0]
-                self.course_url_entry.delete(0, tk.END)
-                self.course_url_entry.insert(0, clean_url)
-                
-        self.course_url_entry.bind("<FocusOut>", clean_course_url)
         add_tooltip(lbl_course, "Paste the Udemy course URL here.")
         row += 1
 
