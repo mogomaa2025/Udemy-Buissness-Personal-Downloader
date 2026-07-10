@@ -903,6 +903,34 @@ class Udemy:
             results = webpage.get("results", [])
         return results
 
+    def _subscription_courses(self, portal_name):
+        """Fetch subscription-based courses using the new subscription-course-enrollments endpoint"""
+        results = []
+        self.session._headers.update(
+            {
+                "Host": "{portal_name}.udemy.com".format(portal_name=portal_name),
+                "Referer": "https://{portal_name}.udemy.com/home/my-courses/".format(
+                    portal_name=portal_name
+                ),
+            }
+        )
+        url = SUBSCRIPTION_COURSES.format(portal_name=portal_name)
+        try:
+            webpage = self.session._get(url).content
+            webpage = webpage.decode("utf8", "ignore")
+            webpage = json.loads(webpage)
+        except conn_error as error:
+            logger.fatal(f"Connection error: {error}")
+            time.sleep(0.8)
+            sys.exit(1)
+        except (ValueError, Exception) as error:
+            logger.fatal(f"{error} on {url}")
+            time.sleep(0.8)
+            sys.exit(1)
+        else:
+            results = webpage.get("results", [])
+        return results
+
     def _extract_course_info_json(self, url, course_id):
         self.session._headers.update({"Referer": url})
         url = COURSE_URL.format(portal_name=portal_name, course_id=course_id)
@@ -1091,20 +1119,55 @@ class Udemy:
             results = webpage.get("results", [])
         return results
 
-    def _extract_subscription_course_info(self, url):
-        course_html = self.session._get(url).text
-        soup = BeautifulSoup(course_html, "lxml")
-        data = soup.find("div", {"class": "ud-component--course-taking--app"})
-        if not data:
-            logger.fatal(
-                "Could not find course data. Possible causes are: Missing cookies.txt file, incorrect url (should end with /learn), not logged in to udemy in specified browser."
-            )
-            self.session.terminate()
-            sys.exit(1)
-        data_args = data.attrs["data-module-args"]
-        data_json = json.loads(data_args)
-        course_id = data_json.get("courseId", None)
-        return course_id
+    def _extract_subscription_course_info(self, url, portal_name=None):
+        # First, try to extract course ID directly from the URL
+        # URLs like /course/<slug>/learn/lecture/<id>#overview contain the course info
+        course_id_match = re.search(r'/course/([^/]+)/learn', url)
+        if course_id_match:
+            course_slug = course_id_match.group(1)
+            # Try to find the course via search
+            if portal_name:
+                try:
+                    search_url = COURSE_SEARCH.format(portal_name=portal_name, course_name=course_slug)
+                    resp = self.session._get(search_url).json()
+                    results = resp.get("results", [])
+                    for entry in results:
+                        if entry.get("published_title") == course_slug or str(entry.get("id")) == course_slug:
+                            return entry.get("id")
+                except Exception:
+                    pass
+        
+        # Fallback: try to extract from the HTML page
+        try:
+            course_html = self.session._get(url).text
+            soup = BeautifulSoup(course_html, "lxml")
+            
+            # Try multiple selectors for course data
+            data = soup.find("div", {"class": "ud-component--course-taking--app"})
+            if not data:
+                # Try newer Udemy page structure
+                data = soup.find("div", {"data-purpose": "course-taking-app"})
+            if not data:
+                # Try extracting from script tags
+                for script in soup.find_all("script"):
+                    if script.string and "courseId" in (script.string or ""):
+                        match = re.search(r'"courseId"\s*:\s*(\d+)', script.string)
+                        if match:
+                            return int(match.group(1))
+            
+            if data and data.attrs.get("data-module-args"):
+                data_args = data.attrs["data-module-args"]
+                data_json = json.loads(data_args)
+                course_id = data_json.get("courseId", None)
+                return course_id
+        except Exception as e:
+            logger.warning(f"Error extracting subscription course info from HTML: {e}")
+        
+        logger.fatal(
+            "Could not find course data. Possible causes are: Missing cookies.txt file, incorrect url (should end with /learn), not logged in to udemy in specified browser."
+        )
+        self.session.terminate()
+        sys.exit(1)
 
     def _extract_course_info(self, url):
         global portal_name
@@ -1146,9 +1209,16 @@ class Udemy:
             if not course:
                 results = self._archived_courses(portal_name=portal_name)
                 course = self._extract_course(response=results, course_name=course_name)
+            if not course:
+                # Try the new subscription courses endpoint
+                try:
+                    results = self._subscription_courses(portal_name=portal_name)
+                    course = self._extract_course(response=results, course_name=course_name)
+                except Exception:
+                    pass
 
         if not course or is_subscription_course:
-            course_id = self._extract_subscription_course_info(url)
+            course_id = self._extract_subscription_course_info(url, portal_name)
             course = self._extract_course_info_json(url, course_id)
 
         if course:
@@ -1306,7 +1376,7 @@ class Udemy:
 
 class Session(object):
     def __init__(self):
-        self._headers = HEADERS
+        self._headers = dict(HEADERS)
         self._session = requests.sessions.Session()
         self._session.mount(
             "https://",
@@ -1329,8 +1399,21 @@ class Session(object):
         self._session.mount("https://", adapter)
 
     def _set_auth_headers(self, bearer_token=""):
-        self._headers["Authorization"] = "Bearer {}".format(bearer_token)
-        self._headers["X-Udemy-Authorization"] = "Bearer {}".format(bearer_token)
+        if bearer_token:
+            # When using a bearer token (browser cookie), use browser-style headers
+            # Remove Android client headers that conflict with bearer token auth
+            self._headers = {
+                "Accept": "*/*",
+                "Accept-Encoding": "gzip, deflate",
+                "Authorization": "Bearer {}".format(bearer_token),
+                "X-Udemy-Authorization": "Bearer {}".format(bearer_token),
+            }
+        else:
+            # No bearer token - use Android client Basic auth
+            self._headers = dict(HEADERS)
+            self._headers["Authorization"] = "Basic {}".format(BASIC_AUTH)
+            self._headers["x-udemy-client-secret"] = CLIENT_SECRET
+            self._headers["x-udemy-client-id"] = CLIENT_ID
 
     def _get(self, url, params=None):
         max_retries = 10
@@ -2962,7 +3045,11 @@ def process_chapter_completion(chapter_dir: str, chapter_index: int, chapter_lec
     if not shutil.which(ffmpeg_path) and not os.path.exists(ffmpeg_path):
         logger.error(f"CRITICAL: FFmpeg not found at '{ffmpeg_path}'. Decryption and combining will fail.")
         logger.error("Please install FFmpeg and add it to your PATH, or place ffmpeg.exe in the application folder.")
-        return results
+        return {
+            'verification': None,
+            'decryption_success': False,
+            'combining_success': False
+        }
 
     results = {
         'verification': None,
